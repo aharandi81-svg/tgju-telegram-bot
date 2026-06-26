@@ -45,7 +45,7 @@ def save_cache(data):
 def is_allowed_time():
     tehran = pytz.timezone("Asia/Tehran")
     now = datetime.now(tehran)
-    return 9 <= now.hour <= 16
+    return 9 <= now.hour <= 24
 
 
 # ---------- پیام ----------
