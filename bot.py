@@ -12,5 +12,5 @@ async def main():
         chat_id=CHANNEL,
         text="✅ ربات با موفقیت از GitHub Actions اجرا شد!"
     )
-
+from time_utils import get_persian_datetime
 asyncio.run(main())
