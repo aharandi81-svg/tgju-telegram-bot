@@ -11,14 +11,21 @@ def get_price(url):
         r = requests.get(url, headers=HEADERS, timeout=10)
         soup = BeautifulSoup(r.text, "html.parser")
 
-        tag = soup.find("span", {"data-col": "info.last_trade.PDrCotVal"})
+        # روش 1: دقیق (اصلی)
+        tag = soup.select_one('span[data-col="info.last_trade.PDrCotVal"]')
 
-        if tag:
+        if tag and tag.text.strip():
             return tag.text.strip()
 
-        return "N/A"
+        # روش 2: fallback (اگر اولی شکست خورد)
+        alt = soup.find("span", class_="value")
+        if alt and alt.text.strip():
+            return alt.text.strip()
 
-    except Exception:
+        return "ERROR"
+
+    except Exception as e:
+        print("Scraper error:", e)
         return "ERROR"
 
 
