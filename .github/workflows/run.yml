@@ -19,5 +19,5 @@ jobs:
 
       - run: python bot.py
   env:
-    BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
-    CHANNEL_ID: ${{ secrets.CHANNEL_ID }}
+    BOT_TOKEN: os.environ["BOT_TOKEN"]
+    CHANNEL_ID: os.environ["BOT_TOKEN"]
