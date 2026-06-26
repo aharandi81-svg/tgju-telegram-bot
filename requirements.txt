@@ -1,3 +1,4 @@
 requests
 beautifulsoup4
+jdatetime
 python-telegram-bot==20.7
