@@ -1,9 +1,12 @@
 import jdatetime
 from datetime import datetime
+import pytz
 
 
 def get_persian_datetime():
-    now = datetime.now()
+    tehran = pytz.timezone("Asia/Tehran")
+    now = datetime.now(tehran)
+
     jnow = jdatetime.datetime.fromgregorian(datetime=now)
 
     date = jnow.strftime("%Y/%m/%d")
