@@ -13,11 +13,16 @@ CHANNEL = os.environ["CHANNEL_ID"]
 bot = Bot(token=TOKEN)
 
 
-# تمیز کردن عدد (اختیاری ولی حرفه‌ای)
-def clean(price):
-    if price:
-        return price.replace(",", "")
-    return "N/A"
+# فرمت عددی (سه‌تا سه‌تا)
+def format_number(price):
+    if not price:
+        return "N/A"
+
+    try:
+        num = int(price.replace(",", ""))
+        return f"{num:,}"
+    except:
+        return price
 
 
 # ساخت پیام نهایی
@@ -27,16 +32,16 @@ def format_message(p):
     return f"""
 📊 قیمت لحظه‌ای بازار
 
-💵 دلار: {clean(p['usd'])} ریال
-💶 یورو: {clean(p['eur'])} ریال
+💵 دلار: {format_number(p['usd'])} ریال
+💶 یورو: {format_number(p['eur'])} ریال
 
-🥇 طلای ۱۸ عیار: {clean(p['gold18'])} ریال
-🪙 سکه امامی: {clean(p['coin'])} ریال
+🥇 طلای ۱۸ عیار: {format_number(p['gold18'])} ریال
+🪙 سکه امامی: {format_number(p['coin'])} ریال
 
 📅 تاریخ: {date}
 🕒 ساعت: {time}
 
-📍  @goldenhook2026
+ 📍 @goldenhook2026
 ⚜️ Catch The Golden Opportunities
 """
 
@@ -52,12 +57,11 @@ async def main():
             text=message
         )
 
-        print("Message sent successfully")
+        print("✅ Message sent successfully")
 
     except Exception as e:
-        print("Error occurred:", str(e))
+        print("❌ Error:", str(e))
 
 
-# اجرای برنامه
 if __name__ == "__main__":
     asyncio.run(main())
