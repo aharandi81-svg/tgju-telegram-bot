@@ -64,7 +64,8 @@ def format_message(p):
 📅 تاریخ: {date}
 🕒 ساعت: {time}
 
-📡 منبع: TGJU
+📍 @goldenhook2026
+⚜️ Catch The Golden Opportunities
 """
 
 
