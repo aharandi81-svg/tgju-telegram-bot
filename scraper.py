@@ -1,9 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
 
-HEADERS = {
-    "User-Agent": "Mozilla/5.0"
-}
+HEADERS = {"User-Agent": "Mozilla/5.0"}
 
 
 def get_price(url):
@@ -11,21 +9,14 @@ def get_price(url):
         r = requests.get(url, headers=HEADERS, timeout=10)
         soup = BeautifulSoup(r.text, "html.parser")
 
-        # روش 1: دقیق (اصلی)
         tag = soup.select_one('span[data-col="info.last_trade.PDrCotVal"]')
 
-        if tag and tag.text.strip():
+        if tag:
             return tag.text.strip()
-
-        # روش 2: fallback (اگر اولی شکست خورد)
-        alt = soup.find("span", class_="value")
-        if alt and alt.text.strip():
-            return alt.text.strip()
 
         return "ERROR"
 
-    except Exception as e:
-        print("Scraper error:", e)
+    except:
         return "ERROR"
 
 
