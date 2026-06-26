@@ -14,7 +14,8 @@ CHANNEL = os.environ["CHANNEL_ID"]
 
 bot = Bot(token=TOKEN)
 
-
+def is_valid_data(p):
+    return p and any(v not in ["ERROR", "N/A", None] for v in p.values())
 # ---------- عدد تمیز ----------
 def format_number(price):
     if not price:
