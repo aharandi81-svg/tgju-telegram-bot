@@ -81,9 +81,14 @@ async def main():
     prices = get_all_prices()
 
     # ❌ اگر خطا داشت → استفاده از cache
-    if "ERROR" in prices.values():
-        print("⚠️ Scrape failed → using cache")
+  if "ERROR" in prices.values():
+
+    if cache:
+        print("Using cache")
         prices = cache
+    else:
+        print("Cache is empty")
+        return
     else:
         print("✅ Fresh data → saving cache")
         save_cache(prices)
