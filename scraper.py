@@ -1,46 +1,75 @@
 import requests
 from bs4 import BeautifulSoup
 
+URL = "https://www.tgju.org"
+
 HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/137.0 Safari/537.36",
-    "Accept-Language": "fa-IR,fa;q=0.9,en;q=0.8"
+    "User-Agent":
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
 }
 
 
-def get_price(url):
+MARKETS = {
+
+    "price_dollar_rl":"usd",
+
+    "price_eur":"eur",
+
+    "geram18":"gold18",
+
+    "sekee":"coin"
+
+}
+
+
+def get_all_prices():
+
+    result={}
+
     try:
-        r = requests.get(
-            url,
+
+        r=requests.get(
+            URL,
             headers=HEADERS,
             timeout=20
         )
 
-        print("URL:", url)
-        print("Status:", r.status_code)
-
-        soup = BeautifulSoup(r.text, "html.parser")
-
-        tag = soup.select_one(
-            'span[data-col="info.last_trade.PDrCotVal"]'
+        soup=BeautifulSoup(
+            r.text,
+            "html.parser"
         )
 
-        if tag:
-            value = tag.get_text(strip=True)
-            print("Value:", value)
-            return value
+        for market,key in MARKETS.items():
 
-        print("Price Not Found")
-        return "ERROR"
+            item=soup.find(
+                id=f"l-{market}"
+            )
+
+            if item:
+
+                price=item.find(
+                    "span",
+                    class_="info-price"
+                )
+
+                if price:
+
+                    result[key]=price.text.strip()
+
+                else:
+
+                    result[key]="ERROR"
+
+            else:
+
+                result[key]="ERROR"
 
     except Exception as e:
+
         print(e)
-        return "ERROR"
 
+        for key in MARKETS.values():
 
-def get_all_prices():
-    return {
-        "usd": get_price("https://www.tgju.org/profile/price_dollar_rl"),
-        "eur": get_price("https://www.tgju.org/profile/price_eur"),
-        "gold18": get_price("https://www.tgju.org/profile/geram18"),
-        "coin": get_price("https://www.tgju.org/profile/sekee"),
-    }
+            result[key]="ERROR"
+
+    return result
