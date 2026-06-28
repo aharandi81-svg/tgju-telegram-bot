@@ -6,20 +6,20 @@ bot = Bot(BOT_TOKEN)
 
 async def send(channels, text):
 
-    for chat in channels:
+    for channel in channels:
 
-        if not chat:
+        if not channel:
             continue
 
         try:
 
             await bot.send_message(
-                chat_id=chat,
+                chat_id=channel,
                 text=text
             )
 
-            print(f"Message sent -> {chat}")
+            print(f"✅ Sent -> {channel}")
 
         except Exception as e:
 
-            print(f"Send Error: {e}")
+            print(f"❌ Send Error -> {e}")
