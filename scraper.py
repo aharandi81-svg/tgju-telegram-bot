@@ -4,14 +4,18 @@ from bs4 import BeautifulSoup
 URL = "https://www.tgju.org"
 
 HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/137.0 Safari/537.36"
+    "User-Agent": (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/137.0 Safari/537.36"
+    )
 }
 
 MARKETS = {
     "price_dollar_rl": "usd",
     "price_eur": "eur",
     "geram18": "gold18",
-    "sekee": "coin"
+    "sekee": "coin",
 }
 
 
@@ -21,44 +25,64 @@ def get_all_prices():
 
     try:
 
-        r = requests.get(
+        response = requests.get(
             URL,
             headers=HEADERS,
-            timeout=20
+            timeout=20,
         )
 
-        r.raise_for_status()
+        response.raise_for_status()
 
-        soup = BeautifulSoup(r.text, "html.parser")
-        for tag in soup.find_all(id=True):
-    if "eur" in tag.get("id").lower():
-        print(tag.get("id"))
-        print(r.status_code)
-        print(r.url)
-        print(r.text[:2000])
-        for market, key in MARKETS.items():
+        print("Status:", response.status_code)
 
-            item = soup.find(id=f"l-{market}")
+        soup = BeautifulSoup(response.text, "html.parser")
+
+        for market_id, key in MARKETS.items():
+
+            value = None
+
+            # ---------- روش اول ----------
+            item = soup.find(id=f"l-{market_id}")
 
             if item:
 
                 price = item.find("span", class_="info-price")
 
                 if price:
-                    result[key] = price.get_text(strip=True)
-                else:
-                    result[key] = "ERROR"
+                    value = price.get_text(strip=True)
+
+            # ---------- روش دوم ----------
+            if value is None:
+
+                row = soup.find(
+                    "tr",
+                    attrs={"data-market-row": market_id},
+                )
+
+                if row:
+
+                    td = row.find("td", class_="market-price")
+
+                    if td:
+                        value = td.get_text(strip=True)
+
+            if value:
+                result[key] = value
 
             else:
                 result[key] = "ERROR"
 
+        print("Prices:", result)
+
+        return result
+
     except Exception as e:
 
-        print("Scraper Error:", e)
+        print("SCRAPER ERROR:", e)
 
-        for key in MARKETS.values():
-            result[key] = "ERROR"
-
-    print("Prices:", result)
-
-    return result
+        return {
+            "usd": "ERROR",
+            "eur": "ERROR",
+            "gold18": "ERROR",
+            "coin": "ERROR",
+        }
