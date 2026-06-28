@@ -1,41 +1,52 @@
 import asyncio
 
 from scraper import get_all_prices
-
 from formatter import market_message
-
-from cache import load,save
-
 from sender import send
-
+from cache import load, save
 from config import CHANNELS
 
 
 async def main():
 
-    prices=get_all_prices()
+    print("=" * 50)
+    print("TGJU BOT STARTED")
+    print("=" * 50)
 
+    # دریافت قیمت‌ها
+    prices = get_all_prices()
+
+    print("Prices received:")
+    print(prices)
+
+    # خواندن کش
+    cache = load()
+
+    # اگر یکی از قیمت‌ها ERROR بود
+    if cache:
+        for key in prices:
+            if prices[key] == "ERROR":
+                prices[key] = cache.get(key, "ERROR")
+
+    # اگر هنوز ERROR وجود داشت
     if "ERROR" in prices.values():
+        print("Some prices are still unavailable.")
 
-        cache=load()
+    # ذخیره کش
+    save(prices)
 
-        if cache:
+    # ساخت متن پیام
+    message = market_message(prices)
 
-            prices=cache
+    print("\n===== MESSAGE =====")
+    print(message)
+    print("===================\n")
 
-        else:
+    # ارسال
+    await send(CHANNELS, message)
 
-            return
-
-    else:
-
-        save(prices)
-
-    msg=market_message(prices)
-
-    await send(CHANNELS,msg)
+    print("Finished successfully.")
 
 
-if __name__=="__main__":
-
+if __name__ == "__main__":
     asyncio.run(main())
