@@ -14,22 +14,21 @@ def market_message(data):
     date,time=get_persian_datetime()
 
     return f"""
-📊 بازار ارز و طلا
+📊 قیمت لحظه ای بازار
 
 💵 دلار
 {comma(data["usd"])} ریال
-
 💶 یورو
 {comma(data["eur"])} ریال
 
 🥇 طلای ۱۸
 {comma(data["gold18"])} ریال
-
 🪙 سکه
 {comma(data["coin"])} ریال
 
 📅 {date}
 🕒 {time}
 
-@goldenhook2026
+📍 @goldenhook2026
+⚜️ Catch The Golden Opportunities
 """
