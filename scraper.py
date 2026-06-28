@@ -4,72 +4,56 @@ from bs4 import BeautifulSoup
 URL = "https://www.tgju.org"
 
 HEADERS = {
-    "User-Agent":
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/137.0 Safari/537.36"
 }
 
-
 MARKETS = {
-
-    "price_dollar_rl":"usd",
-
-    "price_eur":"eur",
-
-    "geram18":"gold18",
-
-    "sekee":"coin"
-
+    "price_dollar_rl": "usd",
+    "price_eur": "eur",
+    "geram18": "gold18",
+    "sekee": "coin"
 }
 
 
 def get_all_prices():
 
-    result={}
+    result = {}
 
     try:
 
-        r=requests.get(
+        r = requests.get(
             URL,
             headers=HEADERS,
             timeout=20
         )
 
-        soup=BeautifulSoup(
-            r.text,
-            "html.parser"
-        )
+        r.raise_for_status()
 
-        for market,key in MARKETS.items():
+        soup = BeautifulSoup(r.text, "html.parser")
 
-            item=soup.find(
-                id=f"l-{market}"
-            )
+        for market, key in MARKETS.items():
+
+            item = soup.find(id=f"l-{market}")
 
             if item:
 
-                price=item.find(
-                    "span",
-                    class_="info-price"
-                )
+                price = item.find("span", class_="info-price")
 
                 if price:
-
-                    result[key]=price.text.strip()
-
+                    result[key] = price.get_text(strip=True)
                 else:
-
-                    result[key]="ERROR"
+                    result[key] = "ERROR"
 
             else:
-
-                result[key]="ERROR"
+                result[key] = "ERROR"
 
     except Exception as e:
 
-        print(e)
+        print("Scraper Error:", e)
 
         for key in MARKETS.values():
+            result[key] = "ERROR"
 
-            result[key]="ERROR"
-print(result)
+    print("Prices:", result)
+
     return result
