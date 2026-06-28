@@ -30,6 +30,9 @@ def get_all_prices():
         r.raise_for_status()
 
         soup = BeautifulSoup(r.text, "html.parser")
+        for tag in soup.find_all(id=True):
+    if "eur" in tag.get("id").lower():
+        print(tag.get("id"))
         print(r.status_code)
         print(r.url)
         print(r.text[:2000])
