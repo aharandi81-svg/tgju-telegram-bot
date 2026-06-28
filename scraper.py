@@ -71,5 +71,5 @@ def get_all_prices():
         for key in MARKETS.values():
 
             result[key]="ERROR"
-
+print(result)
     return result
