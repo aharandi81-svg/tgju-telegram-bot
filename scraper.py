@@ -30,7 +30,9 @@ def get_all_prices():
         r.raise_for_status()
 
         soup = BeautifulSoup(r.text, "html.parser")
-
+        print(r.status_code)
+        print(r.url)
+        print(r.text[:2000])
         for market, key in MARKETS.items():
 
             item = soup.find(id=f"l-{market}")
