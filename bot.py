@@ -19,8 +19,10 @@ async def main():
     print("Prices received:")
     print(prices)
 
-    # خواندن کش از Gist
+    # خواندن کش
     cache = load_cache()
+
+    used_cache = False
 
     if cache:
 
@@ -29,10 +31,20 @@ async def main():
         for key in prices:
 
             if prices.get(key) == "ERROR":
-                prices[key] = last_prices.get(key, "ERROR")
 
-    # ذخیره آخرین قیمت‌ها روی Gist
-    save_cache(prices)
+                if key in last_prices:
+                    prices[key] = last_prices[key]
+                    used_cache = True
+
+    # فقط اگر همه قیمت‌ها معتبر بودند کش را بروزرسانی کن
+    if "ERROR" not in prices.values():
+
+        save_cache(prices)
+        print("✅ Cache Updated")
+
+    else:
+
+        print("⚠ Cache NOT Updated")
 
     # ساخت پیام
     message = market_message(prices)
@@ -41,7 +53,10 @@ async def main():
     print(message)
     print("===================\n")
 
-    # ارسال به همه کانال‌ها
+    if used_cache:
+        print("✅ Some prices loaded from Gist Cache")
+
+    # ارسال به کانال‌ها
     await send(CHANNELS, message)
 
     print("Finished successfully.")
