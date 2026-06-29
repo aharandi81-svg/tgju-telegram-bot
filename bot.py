@@ -3,7 +3,7 @@ import asyncio
 from scraper import get_all_prices
 from formatter import market_message
 from sender import send
-from cache import load, save
+from gist_cache import load_cache, save_cache
 from config import CHANNELS
 
 
