@@ -55,20 +55,20 @@ async def main():
 
     if used_cache:
         print("✅ Some prices loaded from Gist Cache")
-last_prices = cache.get("last", {})
+    last_prices = cache.get("last", {})
 
-used_cache = False
+    used_cache = False
 
 # اگر هیچ تغییری نیست → خروج
-if last_prices and prices == last_prices:
-    print("⛔ No market changes. Message skipped.")
-    return
+    if last_prices and prices == last_prices:
+        print("⛔ No market changes. Message skipped.")
+         return
 
 # اگر خطا داشتیم از کش استفاده کن
-for key in prices:
-    if prices[key] == "ERROR" and key in last_prices:
-        prices[key] = last_prices[key]
-        used_cache = True
+    for key in prices:
+        if prices[key] == "ERROR" and key in last_prices:
+         prices[key] = last_prices[key]
+          used_cache = True
     # ارسال به کانال‌ها
     await send(CHANNELS, message)
 
