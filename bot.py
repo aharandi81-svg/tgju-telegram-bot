@@ -31,7 +31,7 @@ async def main():
                 prices[key] = cache.get(key, "ERROR")
 
     # ذخیره کش
-    save(prices)
+    save_cache(prices)
 
     # ساخت متن پیام
     message = market_message(prices)
