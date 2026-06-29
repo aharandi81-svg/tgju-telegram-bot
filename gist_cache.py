@@ -14,6 +14,8 @@ HEADERS = {
     "Accept": "application/vnd.github+json",
 }
 
+print("GIST_ID =", GIST_ID)
+print("TOKEN EXISTS =", GIST_TOKEN is not None)
 
 def load_cache():
     try:
