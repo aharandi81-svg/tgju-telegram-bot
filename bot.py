@@ -20,17 +20,15 @@ async def main():
     print(prices)
 
     # خواندن کش
-    cache = load()
+    cache = load_cache()
 
     # اگر یکی از قیمت‌ها ERROR بود
     if cache:
+        cache = cache.get("last", {})
+        
         for key in prices:
             if prices[key] == "ERROR":
                 prices[key] = cache.get(key, "ERROR")
-
-    # اگر هنوز ERROR وجود داشت
-    if "ERROR" in prices.values():
-        print("Some prices are still unavailable.")
 
     # ذخیره کش
     save(prices)
