@@ -2,8 +2,6 @@ name: TGJU Bot
 
 on:
   schedule:
-    # هر 2 ساعت (UTC)
-    # 09:00 تا 16:00 ایران ≈ 05:30 تا 12:30 UTC
     - cron: "30 5 * * *"
     - cron: "30 7 * * *"
     - cron: "30 9 * * *"
@@ -34,3 +32,5 @@ jobs:
         env:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
           CHANNEL_ID: ${{ secrets.CHANNEL_ID }}
+          GIST_ID: ${{ secrets.GIST_ID }}
+          GIST_TOKEN: ${{ secrets.GIST_TOKEN }}
