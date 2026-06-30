@@ -1,88 +1,74 @@
 import requests
 from bs4 import BeautifulSoup
 
+from tradingview_scraper import get_tv_prices
+
+
 URL = "https://www.tgju.org"
 
-HEADERS = {
-    "User-Agent": (
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-        "AppleWebKit/537.36 (KHTML, like Gecko) "
-        "Chrome/137.0 Safari/537.36"
-    )
-}
 
-MARKETS = {
-    "price_dollar_rl": "usd",
-    "price_eur": "eur",
-    "geram18": "gold18",
-    "sekee": "coin",
-}
+def clean(text):
+    return (
+        text.replace(",", "")
+        .replace("ريال", "")
+        .replace("ریال", "")
+        .replace("\n", "")
+        .strip()
+    )
 
 
 def get_all_prices():
 
-    result = {}
+    result = {
+        "usd": "ERROR",
+        "eur": "ERROR",
+        "gold18": "ERROR",
+        "coin": "ERROR",
+    }
 
     try:
 
-        response = requests.get(
-            URL,
-            headers=HEADERS,
-            timeout=20,
-        )
+        headers = {
+            "User-Agent": "Mozilla/5.0"
+        }
 
-        response.raise_for_status()
+        response = requests.get(URL, headers=headers, timeout=20)
 
         print("Status:", response.status_code)
 
         soup = BeautifulSoup(response.text, "html.parser")
 
-        for market_id, key in MARKETS.items():
+        # دلار
+        tag = soup.find(id="l-price_dollar_rl")
+        if tag:
+            result["usd"] = clean(tag.text)
 
-            value = None
+        # یورو
+        tag = soup.find(id="l-price_eur")
+        if tag:
+            result["eur"] = clean(tag.text)
 
-            # ---------- روش اول ----------
-            item = soup.find(id=f"l-{market_id}")
+        # طلای 18
+        tag = soup.find(id="l-geram18")
+        if tag:
+            result["gold18"] = clean(tag.text)
 
-            if item:
-
-                price = item.find("span", class_="info-price")
-
-                if price:
-                    value = price.get_text(strip=True)
-
-            # ---------- روش دوم ----------
-            if value is None:
-
-                row = soup.find(
-                    "tr",
-                    attrs={"data-market-row": market_id},
-                )
-
-                if row:
-
-                    td = row.find("td", class_="market-price")
-
-                    if td:
-                        value = td.get_text(strip=True)
-
-            if value:
-                result[key] = value
-
-            else:
-                result[key] = "ERROR"
-
-        print("Prices:", result)
-
-        return result
+        # سکه
+        tag = soup.find(id="l-sekee")
+        if tag:
+            result["coin"] = clean(tag.text)
 
     except Exception as e:
 
-        print("SCRAPER ERROR:", e)
+        print("TGJU Error:", e)
 
-        return {
-            "usd": "ERROR",
-            "eur": "ERROR",
-            "gold18": "ERROR",
-            "coin": "ERROR",
-        }
+    # TradingView
+    tv = get_tv_prices()
+
+    result["xauusd"] = tv["xauusd"]["price"]
+    result["btcusdt"] = tv["btcusdt"]["price"]
+    result["bnbusdt"] = tv["bnbusdt"]["price"]
+
+    print("Prices:", result)
+
+    return result
