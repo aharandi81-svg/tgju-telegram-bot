@@ -1,5 +1,5 @@
 TV_SYMBOLS = {
-    "xauusd": ("OANDA", "XAUUSD"),
+    "xauusd": ("FOREXCOM", "XAUUSD"),
     "btcusdt": ("BINANCE", "BTCUSDT"),
     "bnbusdt": ("BINANCE", "BNBUSDT"),
 }
