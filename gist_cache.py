@@ -1,92 +1,119 @@
 import os
 import json
-from datetime import datetime
-
 import requests
 
+TOKEN = os.getenv("GIST_TOKEN")
 GIST_ID = os.getenv("GIST_ID")
-GIST_TOKEN = os.getenv("GIST_TOKEN")
 
-API_URL = f"https://api.github.com/gists/{GIST_ID}"
+URL = f"https://api.github.com/gists/{GIST_ID}"
 
 HEADERS = {
-    "Authorization": f"Bearer {GIST_TOKEN}",
-    "Accept": "application/vnd.github+json",
+    "Authorization": f"token {TOKEN}",
+    "Accept": "application/vnd.github+json"
 }
 
-print("GIST_ID =", GIST_ID)
-print("TOKEN EXISTS =", GIST_TOKEN is not None)
+
+def default_cache():
+
+    return {
+
+        "updated_at": "",
+
+        "last": {
+
+            "usd": "",
+            "eur": "",
+            "gold18": "",
+            "coin": "",
+
+            "xauusd": "",
+            "btcusdt": "",
+            "bnbusdt": ""
+
+        },
+
+        "history": []
+
+    }
+
 
 def load_cache():
+
     try:
 
-        r = requests.get(API_URL, headers=HEADERS, timeout=20)
+        r = requests.get(URL, headers=HEADERS)
+
         r.raise_for_status()
 
         files = r.json()["files"]
 
-        content = files["cache.json"]["content"]
+        if "cache.json" not in files:
 
-        return json.loads(content)
+            return default_cache()
+
+        return json.loads(files["cache.json"]["content"])
 
     except Exception as e:
 
-        print(f"Cache Load Error: {e}")
+        print("Cache Load Error:", e)
 
-        return {
-            "updated_at": "",
-            "last": {},
-            "history": []
-        }
+        return default_cache()
 
 
 def save_cache(prices):
 
+    cache = load_cache()
+
+    from datetime import datetime
+
+    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    cache["updated_at"] = now
+
+    cache["last"] = prices
+
+    cache["history"].append({
+
+        "time": now,
+
+        **prices
+
+    })
+
+    cache["history"] = cache["history"][-500:]
+
+    body = {
+
+        "files": {
+
+            "cache.json": {
+
+                "content": json.dumps(
+                    cache,
+                    indent=4,
+                    ensure_ascii=False
+                )
+
+            }
+
+        }
+
+    }
+
     try:
 
-        cache = load_cache()
+        requests.patch(
 
-        history = cache.get("history", [])
+            URL,
 
-        now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
-        history.append({
-            "time": now,
-            **prices
-        })
-
-        # فقط آخرین 100 رکورد
-        history = history[-100:]
-
-        new_cache = {
-            "updated_at": now,
-            "last": prices,
-            "history": history
-        }
-
-        body = {
-            "files": {
-                "cache.json": {
-                    "content": json.dumps(
-                        new_cache,
-                        ensure_ascii=False,
-                        indent=4
-                    )
-                }
-            }
-        }
-
-        r = requests.patch(
-            API_URL,
             headers=HEADERS,
-            json=body,
-            timeout=20
-        )
 
-        r.raise_for_status()
+            json=body
+
+        )
 
         print("✅ Gist Cache Updated")
 
     except Exception as e:
 
-        print(f"Cache Save Error: {e}")
+        print("Cache Save Error:", e)
