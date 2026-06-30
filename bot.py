@@ -14,29 +14,25 @@ async def main():
     print("TGJU BOT STARTED")
     print("=" * 50)
 
-    # دریافت قیمت‌ها
     prices = get_all_prices()
 
     print("Prices received:")
     print(prices)
 
-    # خواندن کش
     cache = load_cache()
     last_prices = cache.get("last", {}) if cache else {}
 
     used_cache = False
 
-    # اگر مقداری ERROR بود از کش استفاده کن
+    # اگر ERROR بود از کش استفاده کن
     for key in prices:
 
-        if prices[key] == "ERROR":
+        if prices[key] == "ERROR" and key in last_prices:
 
-            if key in last_prices:
+            prices[key] = last_prices[key]
+            used_cache = True
 
-                prices[key] = last_prices[key]
-                used_cache = True
-
-    # مقایسه
+    # مقایسه قیمت ها
     changed, changes = compare_prices(prices, last_prices)
 
     print("\n========== CHANGES ==========")
@@ -46,14 +42,14 @@ async def main():
         if item["changed"]:
 
             print(
-                f"{key.upper():10}"
-                f"{item['diff']:+,}"
-                f" ({item['percent']:+.2f}%)"
+                f"{key.upper()} : "
+                f"{item['diff']:+,} "
+                f"({item['percent']:+.2f}%)"
             )
 
         else:
 
-            print(f"{key.upper():10}No Change")
+            print(f"{key.upper()} : No Change")
 
     print("=============================\n")
 
@@ -61,14 +57,13 @@ async def main():
     if last_prices and not changed:
 
         print("⛔ No market changes.")
-        print("Skip sending.")
+        print("Skip sending message.")
         return
 
     # ذخیره کش
     if "ERROR" not in prices.values():
 
         save_cache(prices)
-
         print("✅ Cache Updated")
 
     else:
@@ -83,15 +78,11 @@ async def main():
     print("===================\n")
 
     if used_cache:
+        print("✅ Some prices loaded from Gist Cache")
 
-        print("✅ Used Gist Cache")
-
-    # ارسال
     await send(CHANNELS, message)
 
-    print("✅ Message Sent")
-
-    print("Finished Successfully.")
+    print("Finished successfully.")
 
 
 if __name__ == "__main__":

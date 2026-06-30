@@ -1,26 +1,19 @@
-def to_number(value):
-
+def to_int(value):
     try:
-
-        value = str(value).replace(",", "")
-
-        return float(value)
-
+        return int(str(value).replace(",", ""))
     except:
-
         return None
 
 
 def compare_prices(current, previous):
 
     result = {}
-
     changed = False
 
     for key in current:
 
-        cur = to_number(current.get(key))
-        old = to_number(previous.get(key))
+        cur = to_int(current.get(key))
+        old = to_int(previous.get(key))
 
         if cur is None or old is None:
 
@@ -29,7 +22,6 @@ def compare_prices(current, previous):
                 "diff": 0,
                 "percent": 0
             }
-
             continue
 
         diff = cur - old
@@ -37,11 +29,11 @@ def compare_prices(current, previous):
         percent = 0
 
         if old != 0:
-            percent = round(diff / old * 100, 2)
+            percent = round((diff / old) * 100, 2)
 
         result[key] = {
             "changed": diff != 0,
-            "diff": round(diff, 2),
+            "diff": diff,
             "percent": percent
         }
 

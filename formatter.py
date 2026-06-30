@@ -1,18 +1,12 @@
 from time_utils import get_persian_datetime
 
 
-def comma(value):
+def comma(num):
+
     try:
-        if value == "ERROR":
-            return value
-
-        if "." in str(value):
-            return f"{float(value):,.2f}"
-
-        return f"{int(str(value).replace(',','')):,}"
-
+        return f"{int(str(num).replace(',','')):,}"
     except:
-        return value
+        return num
 
 
 def trend(change):
@@ -31,10 +25,7 @@ def market_message(data, changes):
     date, time = get_persian_datetime()
 
     return f"""
-📊 قیمت لحظه‌ای بازار
-
-━━━━━━━━━━━━━━
-🇮🇷 بازار ایران
+📊 قیمت لحظه ای بازار
 
 💵 دلار
 {comma(data["usd"])} ریال
@@ -51,23 +42,6 @@ def market_message(data, changes):
 🪙 سکه
 {comma(data["coin"])} ریال
 {trend(changes["coin"])}
-
-━━━━━━━━━━━━━━
-🌍 بازار جهانی
-
-🟡 Gold (XAU/USD)
-{comma(data["xauusd"])} $
-{trend(changes["xauusd"])}
-
-₿ Bitcoin
-{comma(data["btcusdt"])} $
-{trend(changes["btcusdt"])}
-
-🟡 Binance Coin
-{comma(data["bnbusdt"])} $
-{trend(changes["bnbusdt"])}
-
-━━━━━━━━━━━━━━
 
 📅 {date}
 🕒 {time}
