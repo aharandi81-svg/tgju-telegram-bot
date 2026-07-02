@@ -24,7 +24,7 @@ def trend(change):
     if diff < 0:
         return f"📉 {comma(diff)} ({percent:.2f}%)"
 
-    return "➖ No Change"
+    return "➖ بدون تغییر"
 
 
 def line(icon, title, value, unit, change):
@@ -37,28 +37,29 @@ def line(icon, title, value, unit, change):
 def market_message(data, changes):
     date, time = get_persian_datetime()
 
-    return f"""📊 Live Market Prices
+    return f"""📊 قیمت لحظه‌ای بازار
 
-{line("🇺🇸", "USD", comma(data["usd"]), " IRR", changes["usd"])}
+{line("💵", "دلار", comma(data["usd"]), " ریال", changes["usd"])}
 
-{line("🇪🇺", "EUR", comma(data["eur"]), " IRR", changes["eur"])}
+{line("💶", "یورو", comma(data["eur"]), " ریال", changes["eur"])}
 
-{line("🥇", "Gold 18K", comma(data["gold18"]), " IRR", changes["gold18"])}
+{line("🥇", "طلای ۱۸ عیار", comma(data["gold18"]), " ریال", changes["gold18"])}
 
-{line("🪙", "Coin", comma(data["coin"]), " IRR", changes["coin"])}
+{line("🪙", "سکه", comma(data["coin"]), " ریال", changes["coin"])}
 
-{line("🟡", "XAU/USD", "$" + comma(data["ounce"]), "", changes["ounce"])}
+{line("🟡", "اونس طلا (XAU/USD)", "$" + comma(data["ounce"]), "", changes["ounce"])}
 
-{line("₿", "BTC/USD", "$" + comma(data["btc"]), "", changes["btc"])}
+{line("₿", "بیت‌کوین (BTC/USD)", "$" + comma(data["btc"]), "", changes["btc"])}
 
-{line("Ξ", "ETH/USD", "$" + comma(data["eth"]), "", changes["eth"])}
+{line("Ξ", "اتریوم (ETH/USD)", "$" + comma(data["eth"]), "", changes["eth"])}
 
-{line("🟨", "BNB/USD", "$" + comma(data["bnb"]), "", changes["bnb"])}
+{line("🟨", "بایننس کوین (BNB/USD)", "$" + comma(data["bnb"]), "", changes["bnb"])}
 
 ━━━━━━━━━━━━━━━━━━━━
 
-🗓️ {date}   🕒 {time}
+📅 تاریخ: {date}
+🕒 ساعت: {time}
 
-📢 @goldenhook2026
+📍 @goldenhook2026
 ⚜️ Catch The Golden Opportunities
 """
