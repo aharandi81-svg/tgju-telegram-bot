@@ -4,18 +4,26 @@ from time_utils import get_persian_datetime
 def comma(num):
 
     try:
-        return f"{int(str(num).replace(',','')):,}"
+
+        value = float(str(num).replace(",", ""))
+
+        if value.is_integer():
+            return f"{int(value):,}"
+
+        return f"{value:,.2f}"
+
     except:
+
         return num
 
 
 def trend(change):
 
     if change["diff"] > 0:
-        return f"🟢 +{change['diff']:,} (+{change['percent']}%)"
+        return f"🟢 +{comma(change['diff'])} (+{change['percent']}%)"
 
     if change["diff"] < 0:
-        return f"🔴 {change['diff']:,} ({change['percent']}%)"
+        return f"🔴 {comma(change['diff'])} ({change['percent']}%)"
 
     return "➖ بدون تغییر"
 
@@ -42,6 +50,22 @@ def market_message(data, changes):
 🪙 سکه
 {comma(data["coin"])} ریال
 {trend(changes["coin"])}
+
+🌍 اونس جهانی
+${comma(data["ounce"])}
+{trend(changes["ounce"])}
+
+₿ بیت کوین
+${comma(data["btc"])}
+{trend(changes["btc"])}
+
+Ξ اتریوم
+${comma(data["eth"])}
+{trend(changes["eth"])}
+
+🟡 بایننس کوین
+${comma(data["bnb"])}
+{trend(changes["bnb"])}
 
 📅 {date}
 🕒 {time}
