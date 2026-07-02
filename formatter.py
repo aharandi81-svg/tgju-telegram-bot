@@ -38,32 +38,25 @@ def market_message(data, changes):
 💵 دلار
 {comma(data["usd"])} ریال
 {trend(changes["usd"])}
-
 💶 یورو
 {comma(data["eur"])} ریال
 {trend(changes["eur"])}
-
 🥇 طلای ۱۸
 {comma(data["gold18"])} ریال
 {trend(changes["gold18"])}
-
 🪙 سکه
 {comma(data["coin"])} ریال
 {trend(changes["coin"])}
-
-🌍 اونس جهانی
+$Xau
 ${comma(data["ounce"])}
 {trend(changes["ounce"])}
-
-₿ بیت کوین
+$Btc
 ${comma(data["btc"])}
 {trend(changes["btc"])}
-
-Ξ اتریوم
+$Eth
 ${comma(data["eth"])}
 {trend(changes["eth"])}
-
-🟡 بایننس کوین
+$Bnb
 ${comma(data["bnb"])}
 {trend(changes["bnb"])}
 
