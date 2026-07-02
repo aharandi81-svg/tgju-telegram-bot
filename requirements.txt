@@ -3,4 +3,3 @@ beautifulsoup4
 jdatetime
 pytz
 python-telegram-bot==20.7
-python-telegram-bot>=22
