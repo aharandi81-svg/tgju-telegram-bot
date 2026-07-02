@@ -12,4 +12,4 @@ def is_market_time():
 
     h=now.hour
 
-    return 9<=h<=16scheduler.py
+    return 9<=h<=19scheduler.py
