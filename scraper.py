@@ -16,6 +16,7 @@ MARKETS = {
     "price_eur": "eur",
     "geram18": "gold18",
     "sekee": "coin",
+    "ons": "ounce",
 }
 
 
@@ -68,7 +69,6 @@ def get_all_prices():
 
             if value:
                 result[key] = value
-
             else:
                 result[key] = "ERROR"
 
@@ -85,4 +85,5 @@ def get_all_prices():
             "eur": "ERROR",
             "gold18": "ERROR",
             "coin": "ERROR",
+            "ounce": "ERROR",
         }
