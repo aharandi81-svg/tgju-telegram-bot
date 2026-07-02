@@ -1,6 +1,7 @@
 import asyncio
 
 from scraper import get_all_prices
+from coinmarketcap_scraper import get_crypto_prices
 from formatter import market_message
 from sender import send
 from gist_cache import load_cache, save_cache
@@ -14,7 +15,14 @@ async def main():
     print("TGJU BOT STARTED")
     print("=" * 50)
 
+    # قیمت‌های TGJU
     prices = get_all_prices()
+
+    # قیمت‌های CoinMarketCap
+    crypto = get_crypto_prices()
+
+    # ادغام دو دیکشنری
+    prices.update(crypto)
 
     print("Prices received:")
     print(prices)
@@ -32,7 +40,7 @@ async def main():
             prices[key] = last_prices[key]
             used_cache = True
 
-    # مقایسه قیمت ها
+    # مقایسه قیمت‌ها
     changed, changes = compare_prices(prices, last_prices)
 
     print("\n========== CHANGES ==========")
