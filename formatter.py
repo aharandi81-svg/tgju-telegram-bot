@@ -2,9 +2,7 @@ from time_utils import get_persian_datetime
 
 
 def comma(num):
-
     try:
-
         value = float(str(num).replace(",", ""))
 
         if value.is_integer():
@@ -13,56 +11,54 @@ def comma(num):
         return f"{value:,.2f}"
 
     except:
-
         return num
 
 
 def trend(change):
+    diff = change["diff"]
+    percent = change["percent"]
 
-    if change["diff"] > 0:
-        return f"🟢 +{comma(change['diff'])} (+{change['percent']}%)"
+    if diff > 0:
+        return f"📈 +{comma(diff)} (+{percent:.2f}%)"
 
-    if change["diff"] < 0:
-        return f"🔴 {comma(change['diff'])} ({change['percent']}%)"
+    if diff < 0:
+        return f"📉 {comma(diff)} ({percent:.2f}%)"
 
-    return "➖ بدون تغییر"
+    return "➖ No Change"
+
+
+def line(icon, title, value, unit, change):
+    return (
+        f"{icon} {title}\n"
+        f"💰 {value}{unit}   {trend(change)}"
+    )
 
 
 def market_message(data, changes):
-
     date, time = get_persian_datetime()
 
-    return f"""
-📊 قیمت لحظه ای بازار
+    return f"""📊 Live Market Prices
 
-💵 دلار
-{comma(data["usd"])} ریال
-{trend(changes["usd"])}
-💶 یورو
-{comma(data["eur"])} ریال
-{trend(changes["eur"])}
-🥇 طلای ۱۸
-{comma(data["gold18"])} ریال
-{trend(changes["gold18"])}
-🪙 سکه
-{comma(data["coin"])} ریال
-{trend(changes["coin"])}
-$Xau
-${comma(data["ounce"])}
-{trend(changes["ounce"])}
-$Btc
-${comma(data["btc"])}
-{trend(changes["btc"])}
-$Eth
-${comma(data["eth"])}
-{trend(changes["eth"])}
-$Bnb
-${comma(data["bnb"])}
-{trend(changes["bnb"])}
+{line("🇺🇸", "USD", comma(data["usd"]), " IRR", changes["usd"])}
 
-📅 {date}
-🕒 {time}
+{line("🇪🇺", "EUR", comma(data["eur"]), " IRR", changes["eur"])}
 
-📍 @goldenhook2026
+{line("🥇", "Gold 18K", comma(data["gold18"]), " IRR", changes["gold18"])}
+
+{line("🪙", "Coin", comma(data["coin"]), " IRR", changes["coin"])}
+
+{line("🟡", "XAU/USD", "$" + comma(data["ounce"]), "", changes["ounce"])}
+
+{line("₿", "BTC/USD", "$" + comma(data["btc"]), "", changes["btc"])}
+
+{line("Ξ", "ETH/USD", "$" + comma(data["eth"]), "", changes["eth"])}
+
+{line("🟨", "BNB/USD", "$" + comma(data["bnb"]), "", changes["bnb"])}
+
+━━━━━━━━━━━━━━━━━━━━
+
+🗓️ {date}   🕒 {time}
+
+📢 @goldenhook2026
 ⚜️ Catch The Golden Opportunities
 """
