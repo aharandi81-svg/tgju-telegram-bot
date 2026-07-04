@@ -3,11 +3,9 @@ name: TGJU Bot
 on:
   schedule:
     - cron: "30 5 * * *"
-    - cron: "30 7 * * *"
     - cron: "30 9 * * *"
-    - cron: "30 11 * * *"
     - cron: "30 13 * * *"
-    - cron: "30 15 * * *"
+    - cron: "30 17 * * *"
 
   workflow_dispatch:
 
