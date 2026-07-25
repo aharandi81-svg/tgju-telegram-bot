@@ -1,89 +1,109 @@
 import requests
 from bs4 import BeautifulSoup
 
-URL = "https://www.tgju.org"
+
+URL = "https://www.tgju.org/"
+
 
 HEADERS = {
     "User-Agent": (
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-        "AppleWebKit/537.36 (KHTML, like Gecko) "
-        "Chrome/137.0 Safari/537.36"
+        "AppleWebKit/537.36 "
+        "(KHTML, like Gecko) "
+        "Chrome/138.0 Safari/537.36"
     )
 }
 
-MARKETS = {
-    "price_dollar_rl": "usd",
-    "price_eur": "eur",
-    "geram18": "gold18",
-    "sekee": "coin",
-    "ons": "ounce",
-}
+
+def clean(text):
+
+    return (
+        text.replace("\n", "")
+        .replace("\t", "")
+        .replace("\xa0", "")
+        .strip()
+    )
+
+
+def get_value(soup, id_name):
+
+    try:
+
+        td = soup.find("td", {"data-market-nameslug": id_name})
+
+        price = clean(
+            td.find("span", class_="price").text
+        )
+
+        change = clean(
+            td.find("span", class_="change").text
+        )
+
+        percent = clean(
+            td.find("span", class_="percent").text
+        )
+
+        return f"{price} ({percent}) {change}"
+
+    except Exception:
+
+        return "ERROR"
 
 
 def get_all_prices():
 
-    result = {}
-
     try:
 
-        response = requests.get(
+        r = requests.get(
             URL,
             headers=HEADERS,
-            timeout=20,
+            timeout=20
         )
 
-        response.raise_for_status()
+        print("Status:", r.status_code)
 
-        print("Status:", response.status_code)
+        soup = BeautifulSoup(
+            r.text,
+            "html.parser"
+        )
 
-        soup = BeautifulSoup(response.text, "html.parser")
+        prices = {
 
-        for market_id, key in MARKETS.items():
+            "usd": get_value(
+                soup,
+                "price_dollar_rl"
+            ),
 
-            value = None
+            "eur": get_value(
+                soup,
+                "price_eur"
+            ),
 
-            # ---------- روش اول ----------
-            item = soup.find(id=f"l-{market_id}")
+            "gold18": get_value(
+                soup,
+                "geram18"
+            ),
 
-            if item:
+            "coin": get_value(
+                soup,
+                "sekeb"
+            )
 
-                price = item.find("span", class_="info-price")
+        }
 
-                if price:
-                    value = price.get_text(strip=True)
+        print("Prices:", prices)
 
-            # ---------- روش دوم ----------
-            if value is None:
-
-                row = soup.find(
-                    "tr",
-                    attrs={"data-market-row": market_id},
-                )
-
-                if row:
-
-                    td = row.find("td", class_="market-price")
-
-                    if td:
-                        value = td.get_text(strip=True)
-
-            if value:
-                result[key] = value
-            else:
-                result[key] = "ERROR"
-
-        print("Prices:", result)
-
-        return result
+        return prices
 
     except Exception as e:
 
-        print("SCRAPER ERROR:", e)
+        print(e)
 
         return {
+
             "usd": "ERROR",
             "eur": "ERROR",
             "gold18": "ERROR",
-            "coin": "ERROR",
-            "ounce": "ERROR",
+            "coin": "ERROR"
+
         }
