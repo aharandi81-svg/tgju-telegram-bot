@@ -11,87 +11,106 @@ from config import CHANNELS
 
 async def main():
 
-    print("=" * 50)
+    print("=" * 60)
     print("TGJU BOT STARTED")
-    print("=" * 50)
+    print("=" * 60)
 
-    # قیمت‌های TGJU
+    # ---------- TGJU ----------
     prices = get_all_prices()
 
-    # قیمت‌های CoinMarketCap
+    # ---------- CoinMarketCap ----------
     crypto = get_crypto_prices()
 
-    # ادغام دو دیکشنری
     prices.update(crypto)
 
     print("Prices received:")
     print(prices)
 
+    # ---------- Load Cache ----------
     cache = load_cache()
-    last_prices = cache.get("last", {}) if cache else {}
+
+    if cache:
+        last_prices = cache.get("last", {})
+    else:
+        last_prices = {}
 
     used_cache = False
 
-    # اگر ERROR بود از کش استفاده کن
+    # ---------- اگر قیمت ERROR بود ----------
     for key in prices:
 
-        if prices[key] == "ERROR" and key in last_prices:
+        if prices.get(key) == "ERROR":
 
-            prices[key] = last_prices[key]
-            used_cache = True
+            if key in last_prices:
 
-    # مقایسه قیمت‌ها
-    changed, changes = compare_prices(prices, last_prices)
+                prices[key] = last_prices[key]
+                used_cache = True
+
+    # ---------- Compare ----------
+    changed, changes = compare_prices(
+        prices,
+        last_prices
+    )
 
     print("\n========== CHANGES ==========")
 
-    for key, item in changes.items():
+    for key, value in changes.items():
 
-        if item["changed"]:
+        if value["changed"]:
 
             print(
-                f"{key.upper()} : "
-                f"{item['diff']:+,} "
-                f"({item['percent']:+.2f}%)"
+                f"{key.upper():10}"
+                f"{value['diff']:+,}"
+                f" ({value['percent']:+.2f}%)"
             )
 
         else:
 
-            print(f"{key.upper()} : No Change")
+            print(f"{key.upper():10}No Change")
 
     print("=============================\n")
 
-    # اگر هیچ تغییری نبود
+    # ---------- اگر هیچ تغییری نبود ----------
     if last_prices and not changed:
 
         print("⛔ No market changes.")
-        print("Skip sending message.")
+        print("Skip sending.")
         return
 
-    # ذخیره کش
+    # ---------- Save Cache ----------
     if "ERROR" not in prices.values():
 
         save_cache(prices)
+
         print("✅ Cache Updated")
 
     else:
 
         print("⚠ Cache NOT Updated")
 
-    # ساخت پیام
-    message = market_message(prices, changes)
+    # ---------- Message ----------
+    message = market_message(
+        prices,
+        changes
+    )
 
     print("\n===== MESSAGE =====")
     print(message)
     print("===================\n")
 
     if used_cache:
-        print("✅ Some prices loaded from Gist Cache")
 
-    await send(CHANNELS, message)
+        print("✅ Some values loaded from Gist Cache")
 
-    print("Finished successfully.")
+    # ---------- Send ----------
+    await send(
+        CHANNELS,
+        message
+    )
+
+    print("Finished Successfully.")
 
 
 if __name__ == "__main__":
+
     asyncio.run(main())
