@@ -1,65 +1,119 @@
-from time_utils import get_persian_datetime
+import jdatetime
+from datetime import datetime
 
 
-def comma(num):
+def fmt(value):
+
     try:
-        value = float(str(num).replace(",", ""))
 
-        if value.is_integer():
-            return f"{int(value):,}"
+        if isinstance(value, str):
+            return value
 
-        return f"{value:,.2f}"
+        if abs(value) >= 1000:
+            return f"{value:,.0f}"
+
+        return f"{value}"
 
     except:
-        return num
+        return str(value)
 
 
-def trend(change):
-    diff = change["diff"]
-    percent = change["percent"]
+def arrow(v):
 
-    if diff > 0:
-        return f"📈 +{comma(diff)} (+{percent:.2f}%)"
+    if v > 0:
+        return "🟢"
 
-    if diff < 0:
-        return f"📉 {comma(diff)} ({percent:.2f}%)"
+    if v < 0:
+        return "🔴"
 
-    return "➖ بدون تغییر"
+    return "⚪"
 
 
-def line(icon, title, value, unit, change):
-    return (
-        f"{icon} {title}\n"
-        f"💰 {value}{unit}   {trend(change)}"
+def market_message(prices, changes):
+
+    now = jdatetime.datetime.fromgregorian(
+        datetime=datetime.now()
     )
 
+    text = []
 
-def market_message(data, changes):
-    date, time = get_persian_datetime()
+    text.append("📊 قیمت لحظه‌ای بازار\n")
 
-    return f"""📊 قیمت لحظه‌ای بازار
+    # ---------------- TGJU ----------------
 
-{line("💵", "دلار", comma(data["usd"]), " ریال", changes["usd"])}
+    items = [
+        ("usd", "💵 دلار"),
+        ("eur", "💶 یورو"),
+        ("gold18", "🥇 طلای ۱۸"),
+        ("coin", "🪙 سکه")
+    ]
 
-{line("💶", "یورو", comma(data["eur"]), " ریال", changes["eur"])}
+    for key, title in items:
 
-{line("🥇", "طلای ۱۸ عیار", comma(data["gold18"]), " ریال", changes["gold18"])}
+        value = prices.get(key, "-")
 
-{line("🪙", "سکه", comma(data["coin"]), " ریال", changes["coin"])}
+        text.append(title)
 
-{line("🟡", "اونس طلا (XAU/USD)", "$" + comma(data["ounce"]), "", changes["ounce"])}
+        text.append(str(value))
 
-{line("₿", "بیت‌کوین (BTC/USD)", "$" + comma(data["btc"]), "", changes["btc"])}
+        if key in changes:
 
-{line("Ξ", "اتریوم (ETH/USD)", "$" + comma(data["eth"]), "", changes["eth"])}
+            c = changes[key]
 
-{line("🟨", "بایننس کوین (BNB/USD)", "$" + comma(data["bnb"]), "", changes["bnb"])}
+            if c["changed"]:
 
-━━━━━━━━━━━━━━━━━━━━
+                text.append(
+                    f"{arrow(c['diff'])} "
+                    f"{c['diff']:+,} ریال"
+                )
 
-📅 تاریخ: {date}
-🕒 ساعت: {time}
+                text.append(
+                    f"({c['percent']:+.2f}%)"
+                )
 
-📍 @goldenhook2026
-⚜️ Catch The Golden Opportunities
-"""
+        text.append("")
+
+    # ---------------- GLOBAL ----------------
+
+    text.append("🌍 بازار جهانی\n")
+
+    globals_items = [
+        ("xauusd", "🥇 Gold"),
+        ("btcusdt", "₿ Bitcoin"),
+        ("bnbusdt", "🟡 BNB")
+    ]
+
+    for key, title in globals_items:
+
+        value = prices.get(key)
+
+        if value:
+
+            text.append(title)
+            text.append(str(value))
+
+            if key in changes:
+
+                c = changes[key]
+
+                if c["changed"]:
+
+                    text.append(
+                        f"{arrow(c['diff'])} "
+                        f"{c['diff']:+}"
+                    )
+
+                    text.append(
+                        f"({c['percent']:+.2f}%)"
+                    )
+
+            text.append("")
+
+    text.append(f"📅 {now.strftime('%Y/%m/%d')}")
+    text.append(f"🕒 {now.strftime('%H:%M')}")
+
+    text.append("")
+    text.append("📍 ***")
+    text.append("⚜️ Catch The Golden Opportunities")
+
+    return "\n".join(text)
