@@ -1,109 +1,68 @@
 import requests
 from bs4 import BeautifulSoup
+from config import TGJU_URL, HEADERS
 
 
-URL = "https://www.tgju.org/"
-
-
-HEADERS = {
-    "User-Agent": (
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-        "AppleWebKit/537.36 "
-        "(KHTML, like Gecko) "
-        "Chrome/138.0 Safari/537.36"
-    )
-}
-
-
-def clean(text):
-
+def _clean(text):
     return (
         text.replace("\n", "")
         .replace("\t", "")
-        .replace("\xa0", "")
+        .replace(" ", "")
+        .replace(",", "")
         .strip()
     )
 
 
-def get_value(soup, id_name):
+def get_prices():
 
-    try:
+    r = requests.get(
+        TGJU_URL,
+        headers=HEADERS,
+        timeout=20
+    )
 
-        td = soup.find("td", {"data-market-nameslug": id_name})
+    r.raise_for_status()
 
-        price = clean(
-            td.find("span", class_="price").text
-        )
+    soup = BeautifulSoup(r.text, "lxml")
 
-        change = clean(
-            td.find("span", class_="change").text
-        )
+    prices = {
+        "usd": None,
+        "eur": None,
+        "gold18": None,
+        "coin": None,
+    }
 
-        percent = clean(
-            td.find("span", class_="percent").text
-        )
+    rows = soup.select("tr")
 
-        return f"{price} ({percent}) {change}"
+    for row in rows:
 
-    except Exception:
+        txt = row.get_text(" ", strip=True)
 
-        return "ERROR"
+        if "دلار" in txt and prices["usd"] is None:
+            tds = row.find_all("td")
+            if len(tds) >= 2:
+                prices["usd"] = _clean(tds[1].text)
+
+        elif "یورو" in txt and prices["eur"] is None:
+            tds = row.find_all("td")
+            if len(tds) >= 2:
+                prices["eur"] = _clean(tds[1].text)
+
+        elif "طلای ۱۸" in txt and prices["gold18"] is None:
+            tds = row.find_all("td")
+            if len(tds) >= 2:
+                prices["gold18"] = _clean(tds[1].text)
+
+        elif "سکه امامی" in txt and prices["coin"] is None:
+            tds = row.find_all("td")
+            if len(tds) >= 2:
+                prices["coin"] = _clean(tds[1].text)
+
+    if None in prices.values():
+        raise Exception("TGJU Parse Error")
+
+    return prices
 
 
-def get_all_prices():
-
-    try:
-
-        r = requests.get(
-            URL,
-            headers=HEADERS,
-            timeout=20
-        )
-
-        print("Status:", r.status_code)
-
-        soup = BeautifulSoup(
-            r.text,
-            "html.parser"
-        )
-
-        prices = {
-
-            "usd": get_value(
-                soup,
-                "price_dollar_rl"
-            ),
-
-            "eur": get_value(
-                soup,
-                "price_eur"
-            ),
-
-            "gold18": get_value(
-                soup,
-                "geram18"
-            ),
-
-            "coin": get_value(
-                soup,
-                "sekeb"
-            )
-
-        }
-
-        print("Prices:", prices)
-
-        return prices
-
-    except Exception as e:
-
-        print(e)
-
-        return {
-
-            "usd": "ERROR",
-            "eur": "ERROR",
-            "gold18": "ERROR",
-            "coin": "ERROR"
-
-        }
+if __name__ == "__main__":
+    print(get_prices())
