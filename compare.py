@@ -1,7 +1,14 @@
-import re
+from gist_cache import get_old_prices, update_prices
 
 
-def to_number(value):
+def _to_float(value):
+    """
+    استخراج عدد از رشته
+    مثال:
+    دلار1724900(0.93%)15900
+    -->
+    1724900
+    """
 
     if value is None:
         return None
@@ -9,64 +16,77 @@ def to_number(value):
     if isinstance(value, (int, float)):
         return float(value)
 
-    value = str(value)
+    txt = str(value)
 
-    value = value.replace(",", "")
+    digits = ""
 
-    m = re.search(r"-?\d+(\.\d+)?", value)
+    started = False
 
-    if not m:
+    for ch in txt:
+        if ch.isdigit() or ch == ".":
+            digits += ch
+            started = True
+        elif started:
+            break
+
+    if digits == "":
         return None
 
-    return float(m.group())
+    try:
+        return float(digits)
+    except:
+        return None
 
 
-def compare_prices(current, previous):
+def compare_prices(new_prices):
 
-    changes = {}
+    old_prices = get_old_prices()
+
+    result = {}
 
     changed = False
 
-    keys = set(current.keys()) | set(previous.keys())
+    for key, value in new_prices.items():
 
-    for key in keys:
+        new_value = _to_float(value)
+        old_value = _to_float(old_prices.get(key))
 
-        old = to_number(previous.get(key))
-
-        new = to_number(current.get(key))
-
-        if old is None or new is None:
-
-            changes[key] = {
-                "old": old,
-                "new": new,
-                "diff": 0,
-                "percent": 0,
-                "changed": False
+        if old_value is None:
+            result[key] = {
+                "changed": True,
+                "old": None,
+                "new": value
             }
-
+            changed = True
             continue
 
-        diff = new - old
-
-        percent = 0
-
-        if old != 0:
-
-            percent = (diff / old) * 100
-
-        is_changed = abs(diff) > 0.000001
-
-        if is_changed:
+        if new_value != old_value:
 
             changed = True
 
-        changes[key] = {
-            "old": old,
-            "new": new,
-            "diff": round(diff, 2),
-            "percent": round(percent, 2),
-            "changed": is_changed
-        }
+            diff = round(new_value - old_value, 2)
 
-    return changed, changes
+            percent = 0
+
+            if old_value != 0:
+                percent = round((diff / old_value) * 100, 2)
+
+            result[key] = {
+                "changed": True,
+                "old": old_value,
+                "new": new_value,
+                "diff": diff,
+                "percent": percent
+            }
+
+        else:
+
+            result[key] = {
+                "changed": False,
+                "old": old_value,
+                "new": new_value
+            }
+
+    update_prices(new_prices)
+
+    return changed, result
