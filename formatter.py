@@ -1,119 +1,110 @@
-import jdatetime
 from datetime import datetime
+import jdatetime
 
 
-def fmt(value):
+def _fa_number(text):
+    english = "0123456789"
+    persian = "۰۱۲۳۴۵۶۷۸۹"
 
-    try:
+    text = str(text)
 
-        if isinstance(value, str):
-            return value
+    for e, p in zip(english, persian):
+        text = text.replace(e, p)
 
-        if abs(value) >= 1000:
-            return f"{value:,.0f}"
-
-        return f"{value}"
-
-    except:
-        return str(value)
+    return text
 
 
-def arrow(v):
+def _format_price(value):
 
-    if v > 0:
+    if value is None:
+        return "-"
+
+    txt = str(value)
+
+    digits = ""
+
+    started = False
+
+    for ch in txt:
+        if ch.isdigit():
+            digits += ch
+            started = True
+        elif started:
+            break
+
+    if digits == "":
+        return txt
+
+    number = "{:,}".format(int(digits))
+
+    return _fa_number(number)
+
+
+def _arrow(diff):
+
+    if diff > 0:
         return "🟢"
 
-    if v < 0:
+    if diff < 0:
         return "🔴"
 
     return "⚪"
 
 
-def market_message(prices, changes):
+def build_message(prices):
 
     now = jdatetime.datetime.fromgregorian(
         datetime=datetime.now()
     )
 
-    text = []
+    date = now.strftime("%Y/%m/%d")
+    time = now.strftime("%H:%M")
 
-    text.append("📊 قیمت لحظه‌ای بازار\n")
+    text = f"""💹 قیمت لحظه‌ای بازار
 
-    # ---------------- TGJU ----------------
+🗓 {_fa_number(date)}
+🕒 {_fa_number(time)}
 
-    items = [
-        ("usd", "💵 دلار"),
-        ("eur", "💶 یورو"),
-        ("gold18", "🥇 طلای ۱۸"),
-        ("coin", "🪙 سکه")
-    ]
+💵 دلار
+{_format_price(prices.get("usd"))} ریال
 
-    for key, title in items:
+💶 یورو
+{_format_price(prices.get("eur"))} ریال
 
-        value = prices.get(key, "-")
+🥇 طلای ۱۸ عیار
+{_format_price(prices.get("gold18"))} ریال
 
-        text.append(title)
+🪙 سکه امامی
+{_format_price(prices.get("coin"))} ریال
 
-        text.append(str(value))
+🌍 انس جهانی طلا
+{prices.get("xauusd","-")}
 
-        if key in changes:
+₿ بیت‌کوین
+{prices.get("btcusdt","-")} USDT
 
-            c = changes[key]
+🟡 بایننس کوین
+{prices.get("bnbusdt","-")} USDT
 
-            if c["changed"]:
+🌐 @YourChannel
+"""
 
-                text.append(
-                    f"{arrow(c['diff'])} "
-                    f"{c['diff']:+,} ریال"
-                )
+    return text
 
-                text.append(
-                    f"({c['percent']:+.2f}%)"
-                )
 
-        text.append("")
+def build_change_message(prices, changes):
 
-    # ---------------- GLOBAL ----------------
+    msg = build_message(prices)
 
-    text.append("🌍 بازار جهانی\n")
+    msg += "\n━━━━━━━━━━━━━━\n"
 
-    globals_items = [
-        ("xauusd", "🥇 Gold"),
-        ("btcusdt", "₿ Bitcoin"),
-        ("bnbusdt", "🟡 BNB")
-    ]
+    for key, item in changes.items():
 
-    for key, title in globals_items:
+        if not item["changed"]:
+            continue
 
-        value = prices.get(key)
+        diff = item.get("diff", 0)
 
-        if value:
+        msg += f"{_arrow(diff)} {key.upper()} : {diff:+,.0f}\n"
 
-            text.append(title)
-            text.append(str(value))
-
-            if key in changes:
-
-                c = changes[key]
-
-                if c["changed"]:
-
-                    text.append(
-                        f"{arrow(c['diff'])} "
-                        f"{c['diff']:+}"
-                    )
-
-                    text.append(
-                        f"({c['percent']:+.2f}%)"
-                    )
-
-            text.append("")
-
-    text.append(f"📅 {now.strftime('%Y/%m/%d')}")
-    text.append(f"🕒 {now.strftime('%H:%M')}")
-
-    text.append("")
-    text.append("📍 ***")
-    text.append("⚜️ Catch The Golden Opportunities")
-
-    return "\n".join(text)
+    return msg
