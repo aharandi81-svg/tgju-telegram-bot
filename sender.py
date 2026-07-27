@@ -1,29 +1,34 @@
 from telegram import Bot
-import asyncio
-from config import BOT_TOKEN
+from config import BOT_TOKEN, CHANNELS
 
 
-bot = Bot(token=BOT_TOKEN)
+bot = Bot(BOT_TOKEN)
 
 
-async def send(channels, message):
+async def send_message(text):
 
-    for chat_id in channels:
+    if isinstance(CHANNELS, str):
+        channels = [CHANNELS]
+    else:
+        channels = CHANNELS
+
+    for channel in channels:
+
+        if not channel:
+            continue
 
         try:
 
             await bot.send_message(
-                chat_id=chat_id,
-                text=message,
-                disable_web_page_preview=True
+                chat_id=channel,
+                text=text,
+                parse_mode="HTML",
+                disable_web_page_preview=True,
             )
 
-            print(f"✅ Sent -> {chat_id}")
+            print(f"✅ Sent -> {channel}")
 
         except Exception as e:
 
-            print(f"❌ {chat_id}")
+            print(f"❌ Error sending to {channel}")
             print(e)
-
-        # جلوگیری از Flood تلگرام
-        await asyncio.sleep(2)
