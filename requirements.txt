@@ -1,6 +1,8 @@
 requests
 beautifulsoup4
+lxml
 jdatetime
 pytz
 python-telegram-bot==20.7
-lxml
+fastapi
+uvicorn
