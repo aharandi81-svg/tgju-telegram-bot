@@ -1,112 +1,121 @@
-from telegram import (
-    Update,
-    ReplyKeyboardMarkup
-)
+import os
+import asyncio
 
+from fastapi import FastAPI, Request
+from telegram import Update
 from telegram.ext import (
     Application,
     CommandHandler,
-    MessageHandler,
     ContextTypes,
-    filters
 )
 
-from scraper import get_all_prices
-from formatter import market_message
-from compare import compare_prices
-from gist_cache import load_cache
-from config import BOT_TOKEN
+from scraper import get_prices
+from formatter import build_message
+
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+
+WEBHOOK_URL = os.getenv("WEBHOOK_URL")
+
+PORT = int(os.getenv("PORT", 10000))
+
+app = FastAPI()
+
+telegram_app = Application.builder().token(BOT_TOKEN).build()
 
 
-keyboard = ReplyKeyboardMarkup(
-    [
-        ["📊 قیمت لحظه‌ای"],
-        ["💵 دلار", "💶 یورو"],
-        ["🥇 طلا", "🪙 سکه"]
-    ],
-    resize_keyboard=True
-)
-
+# --------------------------
+# COMMANDS
+# --------------------------
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
-    await update.message.reply_text(
-        "به ربات بازار خوش آمدید.",
-        reply_markup=keyboard
+    text = (
+        "سلام 👋\n\n"
+        "دستورات:\n\n"
+        "/price  قیمت لحظه‌ای"
     )
+
+    await update.message.reply_text(text)
 
 
 async def price(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
-    prices = get_all_prices()
+    try:
 
-    cache = load_cache()
+        prices = get_prices()
 
-    last = cache.get("last", {})
+        message = build_message(prices)
 
-    _, changes = compare_prices(
-        prices,
-        last
-    )
+        await update.message.reply_text(message)
 
-    msg = market_message(
-        prices,
-        changes
-    )
-
-    await update.message.reply_text(msg)
-
-
-async def menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
-
-    text = update.message.text
-
-    prices = get_all_prices()
-
-    if text == "📊 قیمت لحظه‌ای":
-
-        cache = load_cache()
-
-        last = cache.get("last", {})
-
-        _, changes = compare_prices(
-            prices,
-            last
-        )
+    except Exception as e:
 
         await update.message.reply_text(
-            market_message(
-                prices,
-                changes
-            )
+            f"❌ خطا در دریافت قیمت‌ها\n\n{e}"
         )
 
-    elif text == "💵 دلار":
 
-        await update.message.reply_text(prices["usd"])
-
-    elif text == "💶 یورو":
-
-        await update.message.reply_text(prices["eur"])
-
-    elif text == "🥇 طلا":
-
-        await update.message.reply_text(prices["gold18"])
-
-    elif text == "🪙 سکه":
-
-        await update.message.reply_text(prices["coin"])
+telegram_app.add_handler(CommandHandler("start", start))
+telegram_app.add_handler(CommandHandler("price", price))
 
 
-app = Application.builder().token(BOT_TOKEN).build()
+# --------------------------
+# FASTAPI
+# --------------------------
 
-app.add_handler(CommandHandler("start", start))
-app.add_handler(CommandHandler("price", price))
-app.add_handler(
-    MessageHandler(
-        filters.TEXT,
-        menu
+@app.on_event("startup")
+async def startup():
+
+    await telegram_app.initialize()
+
+    await telegram_app.start()
+
+    await telegram_app.bot.set_webhook(
+        url=f"{WEBHOOK_URL}/webhook"
     )
-)
 
-app.run_polling()
+    print("Webhook Set")
+
+
+@app.on_event("shutdown")
+async def shutdown():
+
+    await telegram_app.stop()
+
+    await telegram_app.shutdown()
+
+
+@app.post("/webhook")
+async def webhook(request: Request):
+
+    data = await request.json()
+
+    update = Update.de_json(
+        data,
+        telegram_app.bot,
+    )
+
+    await telegram_app.process_update(update)
+
+    return {
+        "ok": True
+    }
+
+
+@app.get("/")
+async def root():
+
+    return {
+        "status": "running"
+    }
+
+
+if __name__ == "__main__":
+
+    import uvicorn
+
+    uvicorn.run(
+        "webhook:app",
+        host="0.0.0.0",
+        port=PORT,
+    )
